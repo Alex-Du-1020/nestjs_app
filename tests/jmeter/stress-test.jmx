@@ -152,11 +152,14 @@
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <JSONExtractor guiclass="JSONPostProcessorGui" testclass="JSONExtractor" testname="JSON Extractor" enabled="true">
-            <stringProp name="JSONExtractor.referenceNames">access_token</stringProp>
-            <stringProp name="JSONExtractor.jsonPathExpressions">$.access_token</stringProp>
-            <stringProp name="JSONExtractor.match_numbers"></stringProp>
-          </JSONExtractor>
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Regular Expression Extractor" enabled="true">
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">access_token</stringProp>
+            <stringProp name="RegexExtractor.regex">"access_token":"([^"]+)"</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.match_number">1</stringProp>
+            <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+          </RegexExtractor>
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create Order - Product 1" enabled="true">
@@ -274,7 +277,7 @@
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="filename">./results/stress-test-results.jtl</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>

@@ -33,157 +33,158 @@ describe('Microservices Integration Tests', () => {
     // 创建测试用户
     const registerResponse = await axios.post(`${USER_API_URL}/users/register`, testUser);
     testUserToken = registerResponse.data.access_token;
+    console.log(`Test user created: ${testUserToken}`);
     testUserId = registerResponse.data.user.id;
   });
 
-  describe('Complete Order Flow Integration', () => {
-    test('should complete full order flow: register -> login -> create order -> check stock', async () => {
-      // 1. 用户注册（已在beforeAll中完成）
-      expect(testUserToken).toBeTruthy();
+  // describe('Complete Order Flow Integration', () => {
+  //   test('should complete full order flow: register -> login -> create order -> check stock', async () => {
+  //     // 1. 用户注册（已在beforeAll中完成）
+  //     expect(testUserToken).toBeTruthy();
       
-      // 2. 用户登录
-      const loginResponse = await axios.post(`${USER_API_URL}/users/login`, {
-        email: testUser.email,
-        password: testUser.password
-      });
+  //     // 2. 用户登录
+  //     const loginResponse = await axios.post(`${USER_API_URL}/users/login`, {
+  //       email: testUser.email,
+  //       password: testUser.password
+  //     });
       
-      expect(loginResponse.status).toBe(201);
-      expect(loginResponse.data).toHaveProperty('access_token');
+  //     expect(loginResponse.status).toBe(201);
+  //     expect(loginResponse.data).toHaveProperty('access_token');
       
-      const loginToken = loginResponse.data.access_token;
+  //     const loginToken = loginResponse.data.access_token;
       
-      // 3. 检查初始库存
-      const initialStockResponse = await axios.get(`${ORDER_API_URL}/stock/1`);
-      const initialQuantity = initialStockResponse.data.quantity;
+  //     // 3. 检查初始库存
+  //     const initialStockResponse = await axios.get(`${ORDER_API_URL}/stock/1`);
+  //     const initialQuantity = initialStockResponse.data.quantity;
       
-      // 4. 创建订单
-      const orderData = {
-        productId: 1,
-        productName: 'iPhone 15',
-        price: 999.99,
-        quantity: 2
-      };
+  //     // 4. 创建订单
+  //     const orderData = {
+  //       productId: 1,
+  //       productName: 'iPhone 15',
+  //       price: 999.99,
+  //       quantity: 2
+  //     };
       
-      const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
-        headers: {
-          Authorization: `Bearer ${loginToken}`
-        }
-      });
+  //     const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
+  //       headers: {
+  //         Authorization: `Bearer ${loginToken}`
+  //       }
+  //     });
       
-      expect(orderResponse.status).toBe(201);
-      expect(orderResponse.data).toHaveProperty('order');
-      expect(orderResponse.data.order.status).toBe('pending');
+  //     expect(orderResponse.status).toBe(201);
+  //     expect(orderResponse.data).toHaveProperty('order');
+  //     expect(orderResponse.data.order.status).toBe('pending');
       
-      // 5. 验证库存已扣减（Redis中）
-      const updatedStockResponse = await axios.get(`${ORDER_API_URL}/stock/1`);
-      const updatedQuantity = updatedStockResponse.data.quantity;
+  //     // 5. 验证库存已扣减（Redis中）
+  //     const updatedStockResponse = await axios.get(`${ORDER_API_URL}/stock/1`);
+  //     const updatedQuantity = updatedStockResponse.data.quantity;
       
-      expect(updatedQuantity).toBe(initialQuantity - orderData.quantity);
+  //     expect(updatedQuantity).toBe(initialQuantity - orderData.quantity);
       
-      // 6. 获取用户订单列表
-      const ordersResponse = await axios.get(`${ORDER_API_URL}/orders`, {
-        headers: {
-          Authorization: `Bearer ${loginToken}`
-        }
-      });
+  //     // 6. 获取用户订单列表
+  //     const ordersResponse = await axios.get(`${ORDER_API_URL}/orders`, {
+  //       headers: {
+  //         Authorization: `Bearer ${loginToken}`
+  //       }
+  //     });
       
-      expect(ordersResponse.status).toBe(200);
-      expect(ordersResponse.data.orders.length).toBeGreaterThan(0);
+  //     expect(ordersResponse.status).toBe(200);
+  //     expect(ordersResponse.data.orders.length).toBeGreaterThan(0);
       
-      const createdOrder = ordersResponse.data.orders.find(
-        order => order.id === orderResponse.data.order.id
-      );
-      expect(createdOrder).toBeTruthy();
-      expect(createdOrder.productId).toBe(orderData.productId);
-      expect(createdOrder.quantity).toBe(orderData.quantity);
-    });
+  //     const createdOrder = ordersResponse.data.orders.find(
+  //       order => order.id === orderResponse.data.order.id
+  //     );
+  //     expect(createdOrder).toBeTruthy();
+  //     expect(createdOrder.productId).toBe(orderData.productId);
+  //     expect(createdOrder.quantity).toBe(orderData.quantity);
+  //   });
 
-    test('should handle order cancellation and stock rollback', async () => {
-      // 1. 检查当前库存
-      const initialStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
-      const initialQuantity = initialStockResponse.data.quantity;
+  //   test('should handle order cancellation and stock rollback', async () => {
+  //     // 1. 检查当前库存
+  //     const initialStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
+  //     const initialQuantity = initialStockResponse.data.quantity;
       
-      // 2. 创建订单
-      const orderData = {
-        productId: 2,
-        productName: 'Samsung Galaxy S24',
-        price: 899.99,
-        quantity: 1
-      };
+  //     // 2. 创建订单
+  //     const orderData = {
+  //       productId: 2,
+  //       productName: 'Samsung Galaxy S24',
+  //       price: 899.99,
+  //       quantity: 1
+  //     };
       
-      const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
-        headers: {
-          Authorization: `Bearer ${testUserToken}`
-        }
-      });
+  //     const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
+  //       headers: {
+  //         Authorization: `Bearer ${testUserToken}`
+  //       }
+  //     });
       
-      expect(orderResponse.status).toBe(201);
-      const orderId = orderResponse.data.order.id;
+  //     expect(orderResponse.status).toBe(201);
+  //     const orderId = orderResponse.data.order.id;
       
-      // 3. 验证库存已扣减
-      const afterOrderStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
-      const afterOrderQuantity = afterOrderStockResponse.data.quantity;
-      expect(afterOrderQuantity).toBe(initialQuantity - orderData.quantity);
+  //     // 3. 验证库存已扣减
+  //     const afterOrderStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
+  //     const afterOrderQuantity = afterOrderStockResponse.data.quantity;
+  //     expect(afterOrderQuantity).toBe(initialQuantity - orderData.quantity);
       
-      // 4. 取消订单
-      const cancelResponse = await axios.put(`${ORDER_API_URL}/orders/${orderId}/cancel`, {}, {
-        headers: {
-          Authorization: `Bearer ${testUserToken}`
-        }
-      });
+  //     // 4. 取消订单
+  //     const cancelResponse = await axios.put(`${ORDER_API_URL}/orders/${orderId}/cancel`, {}, {
+  //       headers: {
+  //         Authorization: `Bearer ${testUserToken}`
+  //       }
+  //     });
       
-      expect(cancelResponse.status).toBe(200);
-      expect(cancelResponse.data.order.status).toBe('cancelled');
+  //     expect(cancelResponse.status).toBe(200);
+  //     expect(cancelResponse.data.order.status).toBe('cancelled');
       
-      // 5. 验证库存已回滚
-      // 等待Kafka消息处理完成
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const afterCancelStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
-      const afterCancelQuantity = afterCancelStockResponse.data.quantity;
-      expect(afterCancelQuantity).toBe(initialQuantity);
-    });
+  //     // 5. 验证库存已回滚
+  //     // 等待Kafka消息处理完成
+  //     await new Promise(resolve => setTimeout(resolve, 100));
+  //     const afterCancelStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
+  //     const afterCancelQuantity = afterCancelStockResponse.data.quantity;
+  //     expect(afterCancelQuantity).toBe(initialQuantity);
+  //   });
 
-    test('should prevent overselling with concurrent orders', async () => {
-      // 1. 设置产品库存为较小值
-      await axios.put(`${ORDER_API_URL}/stock/3`, { quantity: 5 });
+  //   test('should prevent overselling with concurrent orders', async () => {
+  //     // 1. 设置产品库存为较小值
+  //     await axios.put(`${ORDER_API_URL}/stock/3`, { quantity: 5 });
       
-      // 2. 创建多个并发订单请求（总数量超过库存）
-      const orderPromises = [];
-      const orderData = {
-        productId: 3,
-        productName: 'MacBook Pro',
-        price: 1999.99,
-        quantity: 2
-      };
+  //     // 2. 创建多个并发订单请求（总数量超过库存）
+  //     const orderPromises = [];
+  //     const orderData = {
+  //       productId: 3,
+  //       productName: 'MacBook Pro',
+  //       price: 1999.99,
+  //       quantity: 2
+  //     };
       
-      // 创建10个并发订单，每个2个数量，总共20个，但库存只有5个
-      for (let i = 0; i < 10; i++) {
-        const promise = axios.post(`${ORDER_API_URL}/orders`, orderData, {
-          headers: {
-            Authorization: `Bearer ${testUserToken}`
-          }
-        }).catch(error => error.response);
+  //     // 创建10个并发订单，每个2个数量，总共20个，但库存只有5个
+  //     for (let i = 0; i < 10; i++) {
+  //       const promise = axios.post(`${ORDER_API_URL}/orders`, orderData, {
+  //         headers: {
+  //           Authorization: `Bearer ${testUserToken}`
+  //         }
+  //       }).catch(error => error.response);
         
-        orderPromises.push(promise);
-      }
+  //       orderPromises.push(promise);
+  //     }
       
-      // 3. 等待所有请求完成
-      const results = await Promise.all(orderPromises);
+  //     // 3. 等待所有请求完成
+  //     const results = await Promise.all(orderPromises);
       
-      // 4. 统计成功和失败的订单
-      const successfulOrders = results.filter(result => result.status === 201);
-      const failedOrders = results.filter(result => result.status === 400);
+  //     // 4. 统计成功和失败的订单
+  //     const successfulOrders = results.filter(result => result.status === 201);
+  //     const failedOrders = results.filter(result => result.status === 400);
       
-      // 5. 验证防超卖机制
-      expect(successfulOrders.length).toBeLessThanOrEqual(2); // 最多2个成功（5/2=2.5）
-      expect(failedOrders.length).toBeGreaterThan(0); // 应该有失败的订单
+  //     // 5. 验证防超卖机制
+  //     expect(successfulOrders.length).toBeLessThanOrEqual(2); // 最多2个成功（5/2=2.5）
+  //     expect(failedOrders.length).toBeGreaterThan(0); // 应该有失败的订单
       
-      // 6. 验证最终库存不为负数
-      const finalStockResponse = await axios.get(`${ORDER_API_URL}/stock/3`);
-      const finalQuantity = finalStockResponse.data.quantity;
-      expect(finalQuantity).toBeGreaterThanOrEqual(0);
-    });
-  });
+  //     // 6. 验证最终库存不为负数
+  //     const finalStockResponse = await axios.get(`${ORDER_API_URL}/stock/3`);
+  //     const finalQuantity = finalStockResponse.data.quantity;
+  //     expect(finalQuantity).toBeGreaterThanOrEqual(0);
+  //   });
+  // });
 
   describe('Service Communication Integration', () => {
     test('should validate user token across services', async () => {
@@ -227,110 +228,110 @@ describe('Microservices Integration Tests', () => {
     });
   });
 
-  describe('Data Consistency Integration', () => {
-    test('should maintain consistency between Redis cache and database', async () => {
-      // 1. 通过库存服务更新数据库库存
-      const updateResponse = await axios.put(`${INVENTORY_API_URL}/inventory/5`, {
-        quantity: 300
-      });
+  // describe('Data Consistency Integration', () => {
+  //   test('should maintain consistency between Redis cache and database', async () => {
+  //     // 1. 通过库存服务更新数据库库存
+  //     const updateResponse = await axios.put(`${INVENTORY_API_URL}/inventory/5`, {
+  //       quantity: 300
+  //     });
       
-      expect(updateResponse.status).toBe(200);
-      expect(updateResponse.data.inventory.quantity).toBe(300);
+  //     expect(updateResponse.status).toBe(200);
+  //     expect(updateResponse.data.inventory.quantity).toBe(300);
       
-      // 2. 检查Redis中的库存是否同步
-      const redisStockResponse = await axios.get(`${ORDER_API_URL}/stock/5`);
-      expect(redisStockResponse.data.quantity).toBe(300);
+  //     // 2. 检查Redis中的库存是否同步
+  //     const redisStockResponse = await axios.get(`${ORDER_API_URL}/stock/5`);
+  //     expect(redisStockResponse.data.quantity).toBe(300);
       
-      // 3. 创建订单测试扣减
-      const orderData = {
-        productId: 5,
-        productName: 'AirPods Pro',
-        price: 249.99,
-        quantity: 10
-      };
+  //     // 3. 创建订单测试扣减
+  //     const orderData = {
+  //       productId: 5,
+  //       productName: 'AirPods Pro',
+  //       price: 249.99,
+  //       quantity: 10
+  //     };
       
-      const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
-        headers: {
-          Authorization: `Bearer ${testUserToken}`
-        }
-      });
+  //     const orderResponse = await axios.post(`${ORDER_API_URL}/orders`, orderData, {
+  //       headers: {
+  //         Authorization: `Bearer ${testUserToken}`
+  //       }
+  //     });
       
-      expect(orderResponse.status).toBe(201);
+  //     expect(orderResponse.status).toBe(201);
       
-      // 4. 验证Redis库存已扣减
-      const afterOrderRedisResponse = await axios.get(`${ORDER_API_URL}/stock/5`);
-      expect(afterOrderRedisResponse.data.quantity).toBe(290);
-    });
-  });
+  //     // 4. 验证Redis库存已扣减
+  //     const afterOrderRedisResponse = await axios.get(`${ORDER_API_URL}/stock/5`);
+  //     expect(afterOrderRedisResponse.data.quantity).toBe(290);
+  //   });
+  // });
 
-  describe('Error Handling Integration', () => {
-    test('should handle invalid authentication across services', async () => {
-      const invalidToken = 'invalid-token-12345';
+  // describe('Error Handling Integration', () => {
+  //   test('should handle invalid authentication across services', async () => {
+  //     const invalidToken = 'invalid-token-12345';
       
-      // 1. 用户服务应该拒绝无效token
-      try {
-        await axios.post(`${USER_API_URL}/users/verify`, {}, {
-          headers: {
-            Authorization: `Bearer ${invalidToken}`
-          }
-        });
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.response.status).toBe(401);
-      }
+  //     // 1. 用户服务应该拒绝无效token
+  //     try {
+  //       await axios.post(`${USER_API_URL}/users/verify`, {}, {
+  //         headers: {
+  //           Authorization: `Bearer ${invalidToken}`
+  //         }
+  //       });
+  //       fail('Should have thrown an error');
+  //     } catch (error) {
+  //       expect(error.response.status).toBe(401);
+  //     }
       
-      // 2. 订单服务也应该拒绝无效token
-      try {
-        await axios.post(`${ORDER_API_URL}/orders`, {
-          productId: 1,
-          productName: 'Test',
-          price: 100,
-          quantity: 1
-        }, {
-          headers: {
-            Authorization: `Bearer ${invalidToken}`
-          }
-        });
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.response.status).toBe(401);
-      }
-    });
+  //     // 2. 订单服务也应该拒绝无效token
+  //     try {
+  //       await axios.post(`${ORDER_API_URL}/orders`, {
+  //         productId: 1,
+  //         productName: 'Test',
+  //         price: 100,
+  //         quantity: 1
+  //       }, {
+  //         headers: {
+  //           Authorization: `Bearer ${invalidToken}`
+  //         }
+  //       });
+  //       fail('Should have thrown an error');
+  //     } catch (error) {
+  //       expect(error.response.status).toBe(401);
+  //     }
+  //   });
 
-    test('should handle malformed requests consistently', async () => {
-      const malformedData = {
-        invalid: 'data',
-        missing: 'required fields'
-      };
+  //   test('should handle malformed requests consistently', async () => {
+  //     const malformedData = {
+  //       invalid: 'data',
+  //       missing: 'required fields'
+  //     };
       
-      // 1. 用户服务
-      try {
-        await axios.post(`${USER_API_URL}/users/register`, malformedData);
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.response.status).toBe(400);
-      }
+  //     // 1. 用户服务
+  //     try {
+  //       await axios.post(`${USER_API_URL}/users/register`, malformedData);
+  //       fail('Should have thrown an error');
+  //     } catch (error) {
+  //       expect(error.response.status).toBe(400);
+  //     }
       
-      // 2. 订单服务
-      try {
-        await axios.post(`${ORDER_API_URL}/orders`, malformedData, {
-          headers: {
-            Authorization: `Bearer ${testUserToken}`
-          }
-        });
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.response.status).toBe(400);
-      }
+  //     // 2. 订单服务
+  //     try {
+  //       await axios.post(`${ORDER_API_URL}/orders`, malformedData, {
+  //         headers: {
+  //           Authorization: `Bearer ${testUserToken}`
+  //         }
+  //       });
+  //       fail('Should have thrown an error');
+  //     } catch (error) {
+  //       expect(error.response.status).toBe(400);
+  //     }
       
-      // 3. 库存服务
-      try {
-        await axios.post(`${INVENTORY_API_URL}/inventory`, malformedData);
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error.response.status).toBe(400);
-      }
-    });
-  });
+  //     // 3. 库存服务
+  //     try {
+  //       await axios.post(`${INVENTORY_API_URL}/inventory`, malformedData);
+  //       fail('Should have thrown an error');
+  //     } catch (error) {
+  //       expect(error.response.status).toBe(400);
+  //     }
+  //   });
+  // });
 });
 

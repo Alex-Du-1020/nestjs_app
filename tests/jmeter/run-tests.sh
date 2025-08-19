@@ -3,8 +3,18 @@
 # JMeter测试运行脚本
 # 确保JMeter已安装并在PATH中
 
-# 创建结果目录
+# 创建结果目录并清理旧结果
 mkdir -p results
+
+# 清理旧的测试结果文件
+rm -f results/user-registration-results.jtl
+rm -f results/order-creation-results.jtl
+rm -f results/stress-test-results.jtl
+
+# 清理旧的测试报告目录
+rm -rf results/user-registration-report
+rm -rf results/order-creation-report
+rm -rf results/stress-test-report
 
 echo "开始运行JMeter性能测试..."
 

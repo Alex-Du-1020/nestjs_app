@@ -159,3 +159,4 @@ junit.xml
 *.aof
 
 NestJS/
+tests/jmeter/results/

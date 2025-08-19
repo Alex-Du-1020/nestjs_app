@@ -38,9 +38,9 @@
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{
-  "email": "user${__threadNum}@test.com",
+  "email": "user${__threadNum}_${__time(YMDHMS)}@test.com",
   "password": "password123",
-  "username": "testuser${__threadNum}"
+  "username": "testuser${__threadNum}_${__time(YMDHMS)}"
 }</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
@@ -152,7 +152,7 @@
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="filename">./results/user-registration-results.jtl</stringProp>
         </ResultCollector>
         <hashTree/>
       </hashTree>
