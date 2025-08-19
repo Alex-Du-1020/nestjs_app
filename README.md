@@ -186,7 +186,7 @@ npm run start:dev
 
 ```bash
 # 初始化库存数据
-node scripts/init-redis-stock.js
+node inventory-service/init-redis-stock.js
 
 # 或通过API初始化
 curl -X POST http://localhost:3003/api/inventory/initialize

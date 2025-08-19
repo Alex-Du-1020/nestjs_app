@@ -11,9 +11,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       host: process.env.REDIS_HOST || 'localhost',
       port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
       password: process.env.REDIS_PASSWORD || undefined,
-      retryDelayOnFailover: 100,
-      enableReadyCheck: true,
-      maxRetriesPerRequest: 3,
     });
 
     this.redis.on('connect', () => {
@@ -134,8 +131,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async getAllStock(): Promise<{ productId: number; quantity: number }[]> {
     try {
       const keys = await this.redis.keys('stock:*');
-      const result = [];
-      
+      const result: { productId: number; quantity: number }[] = []; // <-- Add type here
+
       for (const key of keys) {
         const productId = parseInt(key.split(':')[1]);
         const quantity = await this.redis.get(key);
@@ -144,13 +141,34 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
           quantity: parseInt(quantity || '0'),
         });
       }
-      
+
       return result.sort((a, b) => a.productId - b.productId);
     } catch (error) {
       this.logger.error('Error getting all stock:', error);
       return [];
     }
   }
+  
+  // async getAllStock(): Promise<{ productId: number; quantity: number }[]> {
+  //   try {
+  //     const keys = await this.redis.keys('stock:*');
+  //     const result = [];
+      
+  //     for (const key of keys) {
+  //       const productId = parseInt(key.split(':')[1]);
+  //       const quantity = await this.redis.get(key);
+  //       result.push({
+  //         productId,
+  //         quantity: parseInt(quantity || '0'),
+  //       });
+  //     }
+      
+  //     return result.sort((a, b) => a.productId - b.productId);
+  //   } catch (error) {
+  //     this.logger.error('Error getting all stock:', error);
+  //     return [];
+  //   }
+  // }
 
   /**
    * 清除所有库存数据
