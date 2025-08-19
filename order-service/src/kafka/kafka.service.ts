@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Producer, Consumer } from 'kafkajs';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
@@ -7,7 +8,9 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private producer: Producer;
   private consumer: Consumer;
 
-  constructor() {
+  constructor(
+    private redisService: RedisService
+  ) {
     this.kafka = new Kafka({
       clientId: 'order-service',
       brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
@@ -58,9 +61,30 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async handleInventoryResponse(message: any) {
-    // 处理库存服务的响应
-    console.log('Handling inventory response:', message);
-    // 这里可以更新订单状态等
+    try {
+      const { orderId, productId, quantity, action, success, message: responseMessage } = message;
+      
+      console.log('Handling inventory response:', message);
+      
+      if (!success) {
+        // 库存操作失败，需要回滚Redis库存
+        console.log(`Inventory operation failed for order ${orderId}: ${responseMessage}`);
+        
+        // 回滚Redis库存
+        try {
+          if (action === 'decrement') {
+            // 如果是扣减操作失败，需要回滚之前扣减的库存
+            await this.redisService.incrementStock(productId, quantity);
+            console.log(`Rolled back Redis stock for product ${productId}, quantity ${quantity}`);
+          }
+        } catch (error) {
+          console.error(`Error rolling back Redis stock for product ${productId}:`, error);
+        }
+      }
+      // Note: Order status updates would need to be handled separately to avoid circular dependencies
+    } catch (error) {
+      console.error('Error handling inventory response:', error);
+    }
   }
 }
 

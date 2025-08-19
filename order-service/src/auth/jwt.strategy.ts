@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import axios from 'axios';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,23 +13,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    try {
-      // 调用用户服务验证token
-      const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
-      const response = await axios.post(
-        `${userServiceUrl}/api/users/verify`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${ExtractJwt.fromAuthHeaderAsBearerToken()}`,
-          },
-        }
-      );
-      
-      return response.data.user;
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
+    // payload contains { sub: userId, email: email }
+    // Since we're using the same secret, we can trust the payload
+    return {
+      id: payload.sub,
+      email: payload.email,
+    };
   }
 }
 

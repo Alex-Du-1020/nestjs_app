@@ -136,6 +136,8 @@ describe('Microservices Integration Tests', () => {
       expect(cancelResponse.data.order.status).toBe('cancelled');
       
       // 5. 验证库存已回滚
+      // 等待Kafka消息处理完成
+      await new Promise(resolve => setTimeout(resolve, 100));
       const afterCancelStockResponse = await axios.get(`${ORDER_API_URL}/stock/2`);
       const afterCancelQuantity = afterCancelStockResponse.data.quantity;
       expect(afterCancelQuantity).toBe(initialQuantity);

@@ -15,24 +15,26 @@ export class StockController {
   }
 
   @Get(':productId')
-  async getStock(@Param('productId') productId: number) {
-    const quantity = await this.redisService.getStock(productId);
+  async getStock(@Param('productId') productId: string) {
+    const productIdNum = parseInt(productId);
+    const quantity = await this.redisService.getStock(productIdNum);
     return {
       message: 'Stock retrieved successfully',
-      productId,
+      productId: productIdNum,
       quantity,
     };
   }
 
   @Put(':productId')
   async setStock(
-    @Param('productId') productId: number,
+    @Param('productId') productId: string,
     @Body('quantity') quantity: number,
   ) {
-    await this.redisService.setStock(productId, quantity);
+    const productIdNum = parseInt(productId);
+    await this.redisService.setStock(productIdNum, quantity);
     return {
       message: 'Stock updated successfully',
-      productId,
+      productId: productIdNum,
       quantity,
     };
   }
